@@ -5,6 +5,8 @@ import (
 	"os"
 	"os/user"
 	"path/filepath"
+	"strconv"
+	"strings"
 )
 
 type exitCode int
@@ -46,6 +48,20 @@ func commandNew(args []string) exitCode {
 		fmt.Printf("error: faild to create directory: %s: %s\n", dir, err)
 		return exitError
 	}
+
+	curmax := 1
+	if paths, err := filepath.Glob(filepath.Join(dir, "[1-9].go")); err == nil {
+		for _, path := range paths {
+			stem, _ := strings.CutSuffix(filepath.Base(path), ".go")
+			n, err := strconv.Atoi(stem)
+			if err == nil && n > curmax {
+				curmax = n
+			}
+		}
+	}
+
+	fmt.Println(dir)
+	fmt.Println(curmax)
 
 	return exitOK
 }
