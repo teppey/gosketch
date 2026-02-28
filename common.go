@@ -44,8 +44,14 @@ func exists(path string) bool {
 }
 
 func edit(path string) error {
+	stdin, err := os.Open("/dev/tty")
+	if err != nil {
+		return err
+	}
+	defer stdin.Close()
+
 	cmd := exec.Command("vim", path)
-	cmd.Stdin = os.Stdin
+	cmd.Stdin = stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 

@@ -2,15 +2,21 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 )
 
 func newCommand(args []string) error {
-	// TODO: 標準入力からの読み込みをサポートする
 	template := defaultTemplate
+	var data []byte
+	var err error
 	if len(args) > 0 {
-		data, err := os.ReadFile(args[0])
+		if args[0] == "-" {
+			data, err = io.ReadAll(os.Stdin)
+		} else {
+			data, err = os.ReadFile(args[0])
+		}
 		if err != nil {
 			return err
 		}
