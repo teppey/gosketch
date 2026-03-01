@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"errors"
 	"fmt"
 	"os"
@@ -10,7 +11,7 @@ import (
 )
 
 const (
-	scribbleFile = "scribble.go"
+	scribbleFile    = "scribble.go"
 	scribbleOldFile = "scribble.go.old"
 	defaultTemplate = `package main
 
@@ -90,12 +91,33 @@ func goModInit(modDir string) error {
 func goModTidy(modDir string) error {
 	cmd := exec.Command("go", "mod", "tidy")
 	cmd.Dir = modDir
-	out, err := cmd.CombinedOutput()
-	if len(out) > 0 {
-		fmt.Printf("go mod tidy: %s", string(out))
+	return runCmd(cmd)
+}
+
+func runCmd(cmd *exec.Cmd) error {
+	stderr, err := cmd.StderrPipe()
+	if err != nil {
+		return err
 	}
 
-	return err
+	if err := cmd.Start(); err != nil {
+		return err
+	}
+
+	s := bufio.NewScanner(stderr)
+	for s.Scan() {
+		fmt.Println(s.Text())
+	}
+
+	if err := s.Err(); err != nil {
+		return err
+	}
+
+	if err := cmd.Wait(); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func run(path string) error {
